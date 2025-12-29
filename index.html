@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard de Passagens</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3a0ca3;
+            --accent-color: #4cc9f0;
+            --success-color: #4ade80;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --light-color: #f8f9fa;
+            --dark-color: #1e293b;
+            --gray-color: #64748b;
+            --border-radius: 12px;
+            --box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+
+        body {
+            background-color: #f1f5f9;
+            color: var(--dark-color);
+            line-height: 1.6;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background: linear-gradient(180deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 25px 15px;
+            box-shadow: 5px 0 15px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .logo i {
+            font-size: 28px;
+            color: var(--accent-color);
+        }
+
+        .logo h1 {
+            font-size: 22px;
+            font-weight: 700;
+        }
+
+        .nav-links {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 15px;
+            border-radius: var(--border-radius);
+            color: white;
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background-color: rgba(255, 255, 255, 0.15);
+            transform: translateX(5px);
+        }
+
+        .nav-link i {
+            font-size: 18px;
+            width: 24px;
+        }
+
+        .stats-summary {
+            margin-top: 30px;
+            padding: 15px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: var(--border-radius);
+        }
+
+        .stats-summary h3 {
+            font-size: 16px;
+            margin-bottom: 15px;
+            color: var(--accent-color);
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 25px;
+            overflow-y: auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .header h2 {
+            font-size: 28px;
+            color: var(--dark-color);
+        }
+
+        .header-controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border-radius: var(--border-radius);
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--secondary-color);
+            transform: translateY(-2px);
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            color: var(--primary-color);
+            border: 2px solid var(--primary-color);
+        }
+
+        .btn-outline:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .date-filter {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background-color: white;
+            padding: 10px 15px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Cards */
+        .cards-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background-color: white;
+            border-radius: var(--border-radius);
+            padding: 25px;
+            box-shadow: var(--box-shadow);
+            transition: var(--transition);
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--dark-color);
+        }
+
+        .card-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+        }
+
+        .icon-solicitada {
+            background-color: rgba(67, 97, 238, 0.15);
+            color: var(--primary-color);
+        }
+
+        .icon-nao-solicitada {
+            background-color: rgba(239, 68, 68, 0.15);
+            color: var(--danger-color);
+        }
+
+        .card-value {
+            font-size: 32px;
+            font-weight: 800;
+            margin-bottom: 10px;
+        }
+
+        .card-footer {
+            font-size: 14px;
+            color: var(--gray-color);
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        /* Charts */
+        .charts-container {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        @media (max-width: 1100px) {
+            .charts-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .chart-card {
+            background-color: white;
+            border-radius: var(--border-radius);
+            padding: 25px;
+            box-shadow: var(--box-shadow);
+        }
+
+        .chart-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: var(--dark-color);
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+
+        /* Table */
+        .table-container {
+            background-color: white;
+            border-radius: var(--border-radius);
+            padding: 25px;
+            box-shadow: var(--box-shadow);
+            margin-bottom: 30px;
+            overflow-x: auto;
+        }
+
+        .table-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: var(--dark-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            text-align: left;
+            padding: 15px;
+            font-weight: 700;
+            color: var(--dark-color);
+            border-bottom: 2px solid #e2e8f0;
+            background-color: #f8fafc;
+        }
+
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        tr:hover {
+            background-color: #f8fafc;
+        }
+
+        .badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .badge-solicitada {
+            background-color: rgba(67, 97, 238, 0.15);
+            color: var(--primary-color);
+        }
+
+        .badge-nao-solicitada {
+            background-color: rgba(239, 68, 68, 0.15);
+            color: var(--danger-color);
+        }
+
+        .badge-outro {
+            background-color: rgba(245, 158, 11, 0.15);
+            color: var(--warning-color);
+        }
+
+        .actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .action-btn {
+            width: 35px;
+            height: 35px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+            border: none;
+        }
+
+        .edit-btn {
+            background-color: rgba(59, 130, 246, 0.15);
+            color: #3b82f6;
+        }
+
+        .edit-btn:hover {
+            background-color: #3b82f6;
+            color: white;
+        }
+
+        .delete-btn {
+            background-color: rgba(239, 68, 68, 0.15);
+            color: var(--danger-color);
+        }
+
+        .delete-btn:hover {
+            background-color: var(--danger-color);
+            color: white;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            border-radius: var(--border-radius);
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            padding: 25px 25px 15px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--dark-color);
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--gray-color);
+        }
+
+        .modal-body {
+            padding: 25px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border-radius: 8px;
+            border: 1px solid #cbd5e1;
+            font-size: 16px;
+            transition: var(--transition);
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+        }
+
+        .modal-footer {
+            padding: 15px 25px 25px;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+        }
+
+        /* Filter tabs */
+        .filter-tabs {
+            display: flex;
+            background-color: #e2e8f0;
+            border-radius: 10px;
+            padding: 5px;
+            margin-bottom: 25px;
+        }
+
+        .filter-tab {
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: var(--transition);
+            border: none;
+            background: none;
+            flex: 1;
+            text-align: center;
+        }
+
+        .filter-tab.active {
+            background-color: white;
+            color: var(--primary-color);
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Responsive */
+        @media (max-width: 992px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+            
+            .sidebar {
+                height: auto;
+                position: relative;
+            }
+            
+            .cards-container {
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .header-controls {
+                width: 100%;
+                flex-wrap: wrap;
+            }
+            
+            .cards-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="logo">
+                <i class="fas fa-bus"></i>
+                <h1>Passagens Manager</h1>
+            </div>
+            
+            <div class="nav-links">
+                <a href="#" class="nav-link active">
+                    <i class="fas fa-tachometer-alt"></i>
+                    Dashboard
+                </a>
+                <a href="#" class="nav-link">
+                    <i class="fas fa-clipboard-list"></i>
+                    Registros
+                </a>
+                <a href="#" class="nav-link">
+                    <i class="fas fa-chart-pie"></i>
+                    Relatórios
+                </a>
+                <a href="#" class="nav-link">
+                    <i class="fas fa-car"></i>
+                    Veículos
+                </a>
+                <a href="#" class="nav-link">
+                    <i class="fas fa-users"></i>
+                    Motoristas
+                </a>
+                <a href="#" class="nav-link">
+                    <i class="fas fa-cog"></i>
+                    Configurações
+                </a>
+            </div>
+            
+            <div class="stats-summary">
+                <h3>Resumo do Mês</h3>
+                <div class="stat-item">
+                    <span>Passagens Solicitadas</span>
+                    <span id="solicitadas-count">7</span>
+                </div>
+                <div class="stat-item">
+                    <span>Passagens Não Solicitadas</span>
+                    <span id="nao-solicitadas-count">5</span>
+                </div>
+                <div class="stat-item">
+                    <span>Outras Ocorrências</span>
+                    <span id="outras-count">2</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Header -->
+            <div class="header">
+                <h2>Dashboard de Passagens</h2>
+                <div class="header-controls">
+                    <div class="date-filter">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span>Agosto 2025</span>
+                    </div>
+                    <button class="btn btn-outline" id="export-btn">
+                        <i class="fas fa-file-export"></i>
+                        Exportar
+                    </button>
+                    <button class="btn btn-primary" id="add-record-btn">
+                        <i class="fas fa-plus"></i>
+                        Novo Registro
+                    </button>
+                </div>
+            </div>
+
+            <!-- Filter Tabs -->
+            <div class="filter-tabs">
+                <button class="filter-tab active" data-filter="all">Todas Ocorrências</button>
+                <button class="filter-tab" data-filter="solicitada">Passagens Solicitadas</button>
+                <button class="filter-tab" data-filter="nao-solicitada">Passagens Não Solicitadas</button>
+                <button class="filter-tab" data-filter="outro">Outras Ocorrências</button>
+            </div>
+
+            <!-- Cards -->
+            <div class="cards-container">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Passagens Solicitadas</div>
+                        <div class="card-icon icon-solicitada">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                    </div>
+                    <div class="card-value" id="card-solicitadas">7</div>
+                    <div class="card-footer">
+                        <span>Total de registros</span>
+                        <span>56% do total</span>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Passagens Não Solicitadas</div>
+                        <div class="card-icon icon-nao-solicitada">
+                            <i class="fas fa-times-circle"></i>
+                        </div>
+                    </div>
+                    <div class="card-value" id="card-nao-solicitadas">5</div>
+                    <div class="card-footer">
+                        <span>Total de registros</span>
+                        <span>36% do total</span>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Outras Ocorrências</div>
+                        <div class="card-icon">
+                            <i class="fas fa-bus" style="background-color: rgba(245, 158, 11, 0.15); color: var(--warning-color);"></i>
+                        </div>
+                    </div>
+                    <div class="card-value" id="card-outras">2</div>
+                    <div class="card-footer">
+                        <span>Total de registros</span>
+                        <span>8% do total</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts -->
+            <div class="charts-container">
+                <div class="chart-card">
+                    <div class="chart-title">Distribuição por Ocorrência</div>
+                    <div class="chart-container">
+                        <canvas id="occurrenceChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-card">
+                    <div class="chart-title">Motoristas com Mais Registros</div>
+                    <div class="chart-container">
+                        <canvas id="driverChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Table -->
+            <div class="table-container">
+                <div class="table-title">
+                    <span>Registros de Passagens</span>
+                    <span id="table-count">14 registros</span>
+                </div>
+                <table id="records-table">
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Carro</th>
+                            <th>Motorista</th>
+                            <th>Hora</th>
+                            <th>Ocorrência</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-body">
+                        <!-- Dados serão preenchidos via JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Adicionar/Editar Registro -->
+    <div class="modal" id="record-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title" id="modal-title">Adicionar Novo Registro</div>
+                <button class="close-modal" id="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="record-form">
+                    <div class="form-group">
+                        <label for="data">Data *</label>
+                        <input type="date" id="data" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="carro">Carro *</label>
+                        <input type="text" id="carro" class="form-control" placeholder="Ex: 882402" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="motorista">Motorista</label>
+                        <input type="text" id="motorista" class="form-control" placeholder="Ex: Andre Luis">
+                    </div>
+                    <div class="form-group">
+                        <label for="hora">Hora *</label>
+                        <input type="time" id="hora" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="ocorrencia">Ocorrência *</label>
+                        <select id="ocorrencia" class="form-control" required>
+                            <option value="">Selecione uma opção</option>
+                            <option value="Passagem solicitada">Passagem solicitada</option>
+                            <option value="Passagem não solicitada">Passagem não solicitada</option>
+                            <option value="LINHA INTERMUNICIPAL">LINHA INTERMUNICIPAL</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" id="cancel-btn">Cancelar</button>
+                <button class="btn btn-primary" id="save-btn">Salvar Registro</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Dados iniciais baseados no arquivo CSV
+        const initialData = [
+            { data: "04/08/2025", carro: "882402", motorista: "Andre Luis", hora: "09:03", ocorrencia: "Passagem solicitada" },
+            { data: "04/08/2025", carro: "882322", motorista: "Cardeal", hora: "17:17", ocorrencia: "Passagem solicitada" },
+            { data: "06/08/2025", carro: "882318", motorista: "Andre Luis", hora: "09:00", ocorrencia: "Passagem solicitada" },
+            { data: "06/08/2025", carro: "882314", motorista: "Roberto Luiz", hora: "12:30", ocorrencia: "Passagem não solicitada" },
+            { data: "06/08/2025", carro: "882414", motorista: "sem identificação", hora: "15:22", ocorrencia: "LINHA INTERMUNICIPAL" },
+            { data: "08/08/2025", carro: "882316", motorista: "Andre Luis", hora: "08:38", ocorrencia: "Passagem solicitada" },
+            { data: "08/08/2025", carro: "882314", motorista: "Roberto Luiz", hora: "13:00", ocorrencia: "Passagem solicitada" },
+            { data: "09/08/2025", carro: "882200", motorista: "Clodoaldo", hora: "08:35", ocorrencia: "Passagem não solicitada" },
+            { data: "09/08/2025", carro: "882315", motorista: "Albérico", hora: "17:00", ocorrencia: "Passagem não solicitada" },
+            { data: "10/08/2025", carro: "882200", motorista: "Helvécio", hora: "09:43", ocorrencia: "Passagem não solicitada" },
+            { data: "10/08/2025", carro: "8824138", motorista: "sem identificação", hora: "16:15", ocorrencia: "LINHA INTERMUNICIPAL" },
+            { data: "12/08/2025", carro: "882403", motorista: "Lázaro", hora: "10:10", ocorrencia: "Passagem não solicitada" },
+            { data: "12/08/2025", carro: "882400", motorista: "Cardeal", hora: "16:46", ocorrencia: "Passagem solicitada" },
+            { data: "19/08/2025", carro: "882200", motorista: "Roberto Luiz", hora: "09:30", ocorrencia: "Passagem solicitada" },
+            { data: "19/08/2025", carro: "882303", motorista: "Ubaldo", hora: "18:20", ocorrencia: "Passagem não solicitada" }
+        ];
+
+        // Estado da aplicação
+        let records = [...initialData];
+        let editingId = null;
+        let currentFilter = 'all';
+
+        // Elementos DOM
+        const tableBody = document.getElementById('table-body');
+        const modal = document.getElementById('record-modal');
+        const closeModalBtn = document.getElementById('close-modal');
+        const cancelBtn = document.getElementById('cancel-btn');
+        const addRecordBtn = document.getElementById('add-record-btn');
+        const saveBtn = document.getElementById('save-btn');
+        const recordForm = document.getElementById('record-form');
+        const modalTitle = document.getElementById('modal-title');
+        const filterTabs = document.querySelectorAll('.filter-tab');
+        const cardSolicitadas = document.getElementById('card-solicitadas');
+        const cardNaoSolicitadas = document.getElementById('card-nao-solicitadas');
+        const cardOutras = document.getElementById('card-outras');
+        const solicitadasCount = document.getElementById('solicitadas-count');
+        const naoSolicitadasCount = document.getElementById('nao-solicitadas-count');
+        const outrasCount = document.getElementById('outras-count');
+        const tableCount = document.getElementById('table-count');
+
+        // Inicializar gráficos
+        let occurrenceChart, driverChart;
+
+        // Inicializar a aplicação
+        function init() {
+            renderTable();
+            updateStats();
+            initCharts();
+            setupEventListeners();
+        }
+
+        // Renderizar a tabela com os registros
+        function renderTable() {
+            tableBody.innerHTML = '';
+            
+            // Filtrar registros com base no filtro atual
+            let filteredRecords = records;
+            if (currentFilter === 'solicitada') {
+                filteredRecords = records.filter(r => r.ocorrencia === 'Passagem solicitada');
+            } else if (currentFilter === 'nao-solicitada') {
+                filteredRecords = records.filter(r => r.ocorrencia === 'Passagem não solicitada');
+            } else if (currentFilter === 'outro') {
+                filteredRecords = records.filter(r => r.ocorrencia !== 'Passagem solicitada' && r.ocorrencia !== 'Passagem não solicitada');
+            }
+            
+            filteredRecords.forEach((record, index) => {
+                const row = document.createElement('tr');
+                
+                // Determinar a classe do badge com base na ocorrência
+                let badgeClass = 'badge-outro';
+                if (record.ocorrencia === 'Passagem solicitada') badgeClass = 'badge-solicitada';
+                if (record.ocorrencia === 'Passagem não solicitada') badgeClass = 'badge-nao-solicitada';
+                
+                row.innerHTML = `
+                    <td>${record.data}</td>
+                    <td>${record.carro}</td>
+                    <td>${record.motorista || 'Não informado'}</td>
+                    <td>${record.hora}h</td>
+                    <td><span class="badge ${badgeClass}">${record.ocorrencia}</span></td>
+                    <td>
+                        <div class="actions">
+                            <button class="action-btn edit-btn" data-id="${index}">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="action-btn delete-btn" data-id="${index}">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                
+                tableBody.appendChild(row);
+            });
+            
+            // Atualizar contagem na tabela
+            tableCount.textContent = `${filteredRecords.length} registro${filteredRecords.length !== 1 ? 's' : ''}`;
+        }
+
+        // Atualizar estatísticas
+        function updateStats() {
+            const solicitadas = records.filter(r => r.ocorrencia === 'Passagem solicitada').length;
+            const naoSolicitadas = records.filter(r => r.ocorrencia === 'Passagem não solicitada').length;
+            const outras = records.filter(r => r.ocorrencia !== 'Passagem solicitada' && r.ocorrencia !== 'Passagem não solicitada').length;
+            const total = records.length;
+            
+            // Atualizar cards
+            cardSolicitadas.textContent = solicitadas;
+            cardNaoSolicitadas.textContent = naoSolicitadas;
+            cardOutras.textContent = outras;
+            
+            // Atualizar sidebar
+            solicitadasCount.textContent = solicitadas;
+            naoSolicitadasCount.textContent = naoSolicitadas;
+            outrasCount.textContent = outras;
+            
+            // Atualizar gráficos
+            updateCharts();
+        }
+
+        // Inicializar gráficos
+        function initCharts() {
+            const ctx1 = document.getElementById('occurrenceChart').getContext('2d');
+            const ctx2 = document.getElementById('driverChart').getContext('2d');
+            
+            // Gráfico de ocorrências
+            occurrenceChart = new Chart(ctx1, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Passagens Solicitadas', 'Passagens Não Solicitadas', 'Outras'],
+                    datasets: [{
+                        data: [0, 0, 0],
+                        backgroundColor: [
+                            'rgba(67, 97, 238, 0.8)',
+                            'rgba(239, 68, 68, 0.8)',
+                            'rgba(245, 158, 11, 0.8)'
+                        ],
+                        borderColor: [
+                            'rgba(67, 97, 238, 1)',
+                            'rgba(239, 68, 68, 1)',
+                            'rgba(245, 158, 11, 1)'
+                        ],
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                font: {
+                                    size: 13
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Gráfico de motoristas
+            driverChart = new Chart(ctx2, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Número de Registros',
+                        data: [],
+                        backgroundColor: 'rgba(67, 97, 238, 0.7)',
+                        borderColor: 'rgba(67, 97, 238, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+            
+            updateCharts();
+        }
+
+        // Atualizar gráficos com dados atuais
+        function updateCharts() {
+            const solicitadas = records.filter(r => r.ocorrencia === 'Passagem solicitada').length;
+            const naoSolicitadas = records.filter(r => r.ocorrencia === 'Passagem não solicitada').length;
+            const outras = records.filter(r => r.ocorrencia !== 'Passagem solicitada' && r.ocorrencia !== 'Passagem não solicitada').length;
+            
+            // Atualizar gráfico de ocorrências
+            occurrenceChart.data.datasets[0].data = [solicitadas, naoSolicitadas, outras];
+            occurrenceChart.update();
+            
+            // Calcular registros por motorista
+            const driverCounts = {};
+            records.forEach(record => {
+                const motorista = record.motorista || 'Não informado';
+                driverCounts[motorista] = (driverCounts[motorista] || 0) + 1;
+            });
+            
+            // Ordenar por quantidade (maior para menor) e pegar os 5 primeiros
+            const sortedDrivers = Object.entries(driverCounts)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 5);
+            
+            // Atualizar gráfico de motoristas
+            driverChart.data.labels = sortedDrivers.map(d => d[0]);
+            driverChart.data.datasets[0].data = sortedDrivers.map(d => d[1]);
+            driverChart.update();
+        }
+
+        // Abrir modal para adicionar/editar registro
+        function openModal(record = null, id = null) {
+            editingId = id;
+            
+            if (record) {
+                // Modo edição
+                modalTitle.textContent = 'Editar Registro';
+                document.getElementById('data').value = formatDateForInput(record.data);
+                document.getElementById('carro').value = record.carro;
+                document.getElementById('motorista').value = record.motorista || '';
+                document.getElementById('hora').value = record.hora.replace('h', '');
+                document.getElementById('ocorrencia').value = record.ocorrencia;
+            } else {
+                // Modo adição
+                modalTitle.textContent = 'Adicionar Novo Registro';
+                recordForm.reset();
+                // Definir data padrão como hoje
+                const today = new Date().toISOString().split('T')[0];
+                document.getElementById('data').value = today;
+            }
+            
+            modal.style.display = 'flex';
+        }
+
+        // Fechar modal
+        function closeModal() {
+            modal.style.display = 'none';
+            editingId = null;
+            recordForm.reset();
+        }
+
+        // Salvar registro (adicionar ou editar)
+        function saveRecord() {
+            // Validar formulário
+            if (!recordForm.checkValidity()) {
+                recordForm.reportValidity();
+                return;
+            }
+            
+            // Coletar dados do formulário
+            const data = document.getElementById('data').value;
+            const carro = document.getElementById('carro').value;
+            const motorista = document.getElementById('motorista').value;
+            const hora = document.getElementById('hora').value;
+            const ocorrencia = document.getElementById('ocorrencia').value;
+            
+            // Formatar data para o padrão brasileiro
+            const formattedDate = formatDateToBrazilian(data);
+            
+            const record = {
+                data: formattedDate,
+                carro,
+                motorista,
+                hora: hora + 'h',
+                ocorrencia
+            };
+            
+            if (editingId !== null) {
+                // Atualizar registro existente
+                records[editingId] = record;
+            } else {
+                // Adicionar novo registro
+                records.push(record);
+            }
+            
+            // Atualizar interface
+            renderTable();
+            updateStats();
+            closeModal();
+        }
+
+        // Excluir registro
+        function deleteRecord(id) {
+            if (confirm('Tem certeza que deseja excluir este registro?')) {
+                records.splice(id, 1);
+                renderTable();
+                updateStats();
+            }
+        }
+
+        // Formatar data para input type="date"
+        function formatDateForInput(dateStr) {
+            // Converte de DD/MM/YYYY para YYYY-MM-DD
+            const parts = dateStr.split('/');
+            if (parts.length === 3) {
+                return `${parts[2]}-${parts[1]}-${parts[0]}`;
+            }
+            return dateStr;
+        }
+
+        // Formatar data para o padrão brasileiro (DD/MM/YYYY)
+        function formatDateToBrazilian(dateStr) {
+            // Converte de YYYY-MM-DD para DD/MM/YYYY
+            const parts = dateStr.split('-');
+            if (parts.length === 3) {
+                return `${parts[2]}/${parts[1]}/${parts[0]}`;
+            }
+            return dateStr;
+        }
+
+        // Configurar event listeners
+        function setupEventListeners() {
+            // Botões de ação na tabela (editar/excluir)
+            document.addEventListener('click', (e) => {
+                // Editar registro
+                if (e.target.closest('.edit-btn')) {
+                    const id = parseInt(e.target.closest('.edit-btn').dataset.id);
+                    openModal(records[id], id);
+                }
+                
+                // Excluir registro
+                if (e.target.closest('.delete-btn')) {
+                    const id = parseInt(e.target.closest('.delete-btn').dataset.id);
+                    deleteRecord(id);
+                }
+            });
+            
+            // Botão para adicionar novo registro
+            addRecordBtn.addEventListener('click', () => openModal());
+            
+            // Botões para fechar modal
+            closeModalBtn.addEventListener('click', closeModal);
+            cancelBtn.addEventListener('click', closeModal);
+            
+            // Botão para salvar registro
+            saveBtn.addEventListener('click', saveRecord);
+            
+            // Fechar modal ao clicar fora
+            window.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    closeModal();
+                }
+            });
+            
+            // Filtros por tipo de ocorrência
+            filterTabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    // Remover classe active de todas as tabs
+                    filterTabs.forEach(t => t.classList.remove('active'));
+                    
+                    // Adicionar classe active na tab clicada
+                    tab.classList.add('active');
+                    
+                    // Atualizar filtro atual
+                    currentFilter = tab.dataset.filter;
+                    
+                    // Renderizar tabela com o filtro aplicado
+                    renderTable();
+                });
+            });
+            
+            // Botão de exportar (funcionalidade básica)
+            document.getElementById('export-btn').addEventListener('click', () => {
+                alert('Funcionalidade de exportação seria implementada aqui. Os dados podem ser exportados para CSV, Excel ou PDF.');
+            });
+        }
+
+        // Inicializar a aplicação quando o DOM estiver carregado
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
